@@ -12,4 +12,61 @@ model User {
   name      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  games     Game[]
+}
+
+model Game {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  score     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  towers    Tower[]
+  enemies   Enemy[]
+  bullets   Bullet[]
+}
+
+model Tower {
+  id        Int      @id @default(autoincrement())
+  gameId    Int
+  game      Game     @relation(fields: [gameId], references: [id])
+  type      String   // Tipo da torre (básica, avançada, etc)
+  level     Int      @default(1)
+  x         Float    // Posição X
+  y         Float    // Posição Y
+  damage    Int      @default(10)
+  range     Float    @default(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bullets   Bullet[]
+}
+
+model Enemy {
+  id        Int      @id @default(autoincrement())
+  gameId    Int
+  game      Game     @relation(fields: [gameId], references: [id])
+  type      String   // Tipo do inimigo
+  health    Int      @default(100)
+  x         Float    // Posição X
+  y         Float    // Posição Y
+  speed     Float    @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Bullet {
+  id        Int      @id @default(autoincrement())
+  gameId    Int
+  game      Game     @relation(fields: [gameId], references: [id])
+  towerId   Int
+  tower     Tower    @relation(fields: [towerId], references: [id])
+  x         Float    // Posição X
+  y         Float    // Posição Y
+  targetX   Float    // Posição X do alvo
+  targetY   Float    // Posição Y do alvo
+  damage    Int      @default(10)
+  speed     Float    @default(5)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 } 

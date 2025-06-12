@@ -6,6 +6,9 @@ import { authMiddleware } from "../middlewares/authMiddleware";
 const router = Router();
 const prisma = new PrismaClient();
 
+// Garantir que temos um JWT_SECRET válido
+const JWT_SECRET = process.env.JWT_SECRET || "tokenAuth";
+
 // Criar ou buscar usuário
 router.post("/users", async (req, res) => {
   const { name } = req.body;
@@ -28,7 +31,7 @@ router.post("/users", async (req, res) => {
 
     console.log("User found/created:", user); // Debug log
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || "", {
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -42,7 +45,7 @@ router.post("/users", async (req, res) => {
     console.error("Database error:", error);
     return res.status(400).json({
       error: "Erro ao criar/buscar usuário",
-      details: error.message,
+      details: error instanceof Error ? error.message : "Erro desconhecido",
     });
   }
 });
