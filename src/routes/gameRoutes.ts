@@ -231,4 +231,50 @@ router.get("/games/:gameId/towers", authMiddleware, async (req, res) => {
   }
 });
 
+// Salvar score ao final do jogo
+router.post("/scores", async (req, res) => {
+  const { username, score } = req.body;
+  if (!username || typeof score !== "number") {
+    return res.status(400).json({ error: "username e score são obrigatórios" });
+  }
+  try {
+    // Busca ou cria usuário
+    let user = await prisma.user.findFirst({ where: { name: username } });
+    if (!user) {
+      user = await prisma.user.create({ data: { name: username } });
+    }
+    // Salva o score na tabela de games
+    await prisma.game.create({
+      data: {
+        userId: user.id,
+        score: score,
+      },
+    });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao salvar score:", error);
+    return res.status(500).json({ error: "Erro ao salvar score" });
+  }
+});
+
+// Rota para ranking dos 10 melhores
+router.get("/ranking", async (req, res) => {
+  try {
+    const top = await prisma.game.findMany({
+      orderBy: { score: "desc" },
+      take: 10,
+      include: { user: true },
+    });
+    const ranking = top.map((g) => ({
+      username: g.user?.name || "?",
+      score: g.score,
+      date: g.createdAt,
+    }));
+    return res.json(ranking);
+  } catch (error) {
+    console.error("Erro ao buscar ranking:", error);
+    return res.status(500).json({ error: "Erro ao buscar ranking" });
+  }
+});
+
 export const gameRoutes = router;
